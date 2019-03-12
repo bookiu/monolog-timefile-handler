@@ -30,11 +30,11 @@ class TimefileHandler extends StreamHandler
     private $currentDate;
 
 
-    public function __construct(string $filename, int $level = Logger::DEBUG, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
+    public function __construct(string $filename, string $level = 'DEBUG', bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
     {
         $this->rawFilename = $filename;
 
-        parent::__construct($this->getRealFilename(), $level, $bubble, $filePermission, $useLocking);
+        parent::__construct($this->getRealFilename(), Logger::toMonologLevel($level), $bubble, $filePermission, $useLocking);
     }
 
     /**
