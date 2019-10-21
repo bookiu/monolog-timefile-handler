@@ -10,7 +10,11 @@
     }
   ],
   "require": {
-    "monolog/monolog": "^1.24"
+    "php": "^7.2",
+    "monolog/monolog": "^1.24|^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8.35|~5.7"
   },
   "autoload": {
     "psr-4": {
