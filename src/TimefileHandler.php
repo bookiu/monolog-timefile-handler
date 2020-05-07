@@ -1,4 +1,5 @@
 <?php
+
 namespace Yaxin\TimefileHandler;
 
 use Monolog\Handler\StreamHandler;
@@ -70,7 +71,7 @@ class TimefileHandler extends StreamHandler
      */
     private function getRealFilename()
     {
-        $filename = preg_replace_callback(self::DATETIME_PATTERN, function($matched) {
+        $filename = preg_replace_callback(self::DATETIME_PATTERN, function ($matched) {
             $this->datePattern = $matched[2];
             $this->filePatternDate = date($this->datePattern);
 
