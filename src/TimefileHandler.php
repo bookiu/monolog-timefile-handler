@@ -17,12 +17,12 @@ class TimefileHandler extends StreamHandler
     /**
      * @var string
      */
-    private $datePattern;
+    private $datePattern = '';
 
     /**
      * @var string
      */
-    private $currentDate;
+    private $filePatternDate = '';
 
     /**
      * @param string $filename
@@ -44,13 +44,23 @@ class TimefileHandler extends StreamHandler
      *
      * @param array $record
      */
-    protected function write(array $record)
+    protected function write(array $record): void
     {
-        if ($this->currentDate !== date($this->datePattern)) {
-            $this->close();
-            $this->url = $this->getRealFilename();
-        }
+        $this->rotate($record);
+
         parent::write($record);
+    }
+
+    /**
+     * @param array $record
+     */
+    protected function rotate(array &$record)
+    {
+        if ($this->filePatternDate == $record['datetime']->format($this->datePattern)) {
+            return;
+        }
+        $this->close();
+        $this->url = $this->getRealFilename();
     }
 
     /**
@@ -62,9 +72,9 @@ class TimefileHandler extends StreamHandler
     {
         $filename = preg_replace_callback(self::DATETIME_PATTERN, function($matched) {
             $this->datePattern = $matched[2];
-            $this->currentDate = date($matched[2]);
+            $this->filePatternDate = date($this->datePattern);
 
-            return $this->currentDate;
+            return $this->filePatternDate;
         }, $this->rawFilename);
         return $filename ?: $this->rawFilename;
     }
