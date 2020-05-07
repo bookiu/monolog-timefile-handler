@@ -1,9 +1,4 @@
 <?php
-declare(strict_types=1);
-/**
- *
- */
-
 namespace Yaxin\TimefileHandler;
 
 use Monolog\Handler\StreamHandler;
@@ -29,8 +24,15 @@ class TimefileHandler extends StreamHandler
      */
     private $currentDate;
 
-
-    public function __construct(string $filename, int $level = Logger::DEBUG, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
+    /**
+     * @param string $filename
+     * @param int $level
+     * @param bool $bubble
+     * @param int|null $filePermission
+     * @param bool $useLocking
+     * @throws \Exception
+     */
+    public function __construct($filename, $level = Logger::DEBUG, $bubble = true, $filePermission = null, $useLocking = false)
     {
         $this->rawFilename = $filename;
 
