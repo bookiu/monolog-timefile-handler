@@ -1,13 +1,13 @@
 <?php
 
-namespace Yaxin\TimefileHandler\TestCases;
+namespace Yaxin\TestCase\TimefileHandler;
 
 use DateTime;
 use Monolog\Logger;
-use PHPUnit\Framework\TestCase as PUTestCase;
+use PHPUnit\Framework\TestCase as BaseTestCase;
 
 
-class TestCase extends PUTestCase
+class TestCase extends BaseTestCase
 {
     /**
      * @return array Record

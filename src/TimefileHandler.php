@@ -45,7 +45,7 @@ class TimefileHandler extends StreamHandler
      *
      * @param array $record
      */
-    protected function write(array $record)
+    protected function write(array $record): void
     {
         $this->rotate($record);
 

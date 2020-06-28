@@ -1,63 +1,73 @@
 <?php
 
-namespace Yaxin;
+namespace Yaxin\TestCase\TimefileHandler;
 
-use Monolog\Logger;
-use PHPUnit\Framework\TestCase;
 use Yaxin\TimefileHandler\TimefileHandler;
 
 
 class TimefileHandlerTest extends TestCase
 {
-    private $logger;
-    private $logBasePath;
+    private $lastError;
 
     protected function setUp()
     {
-        $this->logger = new Logger('test');
-        $this->logBasePath = __DIR__ . '/log';
+        $dir = __DIR__ . '/Fixtures';
+        chmod($dir, 0777);
+        if (!is_writable($dir)) {
+            $this->markTestSkipped($dir . ' must be writable to test the RotatingFileHandler.');
+        }
+        $this->lastError = null;
+        set_error_handler(function ($code, $message) {
+            $this->lastError = array(
+                'code' => $code,
+                'message' => $message,
+            );
 
-        parent::setUp();
+            return true;
+        });
     }
 
-    public function testLogFile()
+    public function testRotationCreatesNewFile()
     {
-        $logFile = $this->logBasePath . '/testing.log';
-        $handler = new TimefileHandler($logFile);
-        $this->logger->setHandlers([$handler]);
-        $this->logger->error("test log file exist");
-        self::assertFileExists($logFile);
+        $handler = new TimefileHandler(__DIR__ . '/Fixtures/foo_%(Ymd_H).rot');
+        $handler->setFormatter($this->getIdentityFormatter());
+        $handler->handle($this->getRecord());
+
+        $log = __DIR__ . '/Fixtures/foo_' . date('Ymd_H') . '.rot';
+        $this->assertTrue(file_exists($log));
+        $this->assertEquals('test', file_get_contents($log));
     }
 
-    public function testDateTimePattern()
+    public function testRotation()
     {
-        $logFilePattern = $this->logBasePath . '/test%(_Ymd_His).log';
+        $handler = new TimefileHandler(__DIR__ . '/Fixtures/foo_%(Ymd_His).rot');
+        $handler->setFormatter($this->getIdentityFormatter());
+        $handler->handle($this->getRecord());
+        $log1 = __DIR__ . '/Fixtures/foo_' . date('Ymd_His') . '.rot';
+        sleep(1);
+        $handler->handle($this->getRecord());
+        $log2 = __DIR__ . '/Fixtures/foo_' . date('Ymd_His') . '.rot';
 
-        $handler = new TimefileHandler($logFilePattern);
-        $this->logger->pushHandler($handler);
+        $this->assertNotEquals($log1, $log2);
+        $this->assertTrue(file_exists($log1));
+        $this->assertTrue(file_exists($log2));
+    }
 
-        $logFile = $this->logBasePath . '/test' . date('_Ymd_His') . '.log';
-        $this->logger->warning('AAAAAAAAAAAA');
-        self::assertTrue(is_file($logFile));
-
-        sleep(2);
-
-        $logFile2 = $this->logBasePath . '/test' . date('_Ymd_His') . '.log';
-        $this->logger->warning('BBBBBBBBBBBB');
-        self::assertTrue(is_file($logFile2));
-
-        self::assertNotSame($logFile, $logFile2);
+    public function testReuseCurrentFile()
+    {
+        $log = __DIR__ . '/Fixtures/foo_' . date('Ymd') . '.rot';
+        file_put_contents($log, "foo");
+        $handler = new TimefileHandler(__DIR__ . '/Fixtures/foo_%(Ymd).rot');
+        $handler->setFormatter($this->getIdentityFormatter());
+        $handler->handle($this->getRecord());
+        $this->assertEquals('footest', file_get_contents($log));
     }
 
     protected function tearDown()
     {
-        // Delete all test log file
-        $logFiles = glob($this->logBasePath . '/*');
-        if ($logFiles) {
-            foreach ($logFiles as $file) {
-                @unlink($file);
-            }
+        foreach (glob(__DIR__ . '/Fixtures/*.rot') as $file) {
+            unlink($file);
         }
-        parent::tearDown();
+        restore_error_handler();
     }
 }
